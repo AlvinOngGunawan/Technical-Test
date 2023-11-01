@@ -1,0 +1,78 @@
+1. CREATE SEQUENCE IF NOT EXISTS department_pkey_seq;
+CREATE TABLE IF NOT EXISTS company."department"
+(
+	id int8 NOT NULL DEFAULT nextval('department_pkey_seq')::regclass,
+    name VARCHAR(100) NOT NULL,
+    CONSTRAINT pk_department_id PRIMARY KEY (id)
+);
+
+CREATE SEQUENCE IF NOT EXISTS position_pkey_seq;
+CREATE TABLE IF NOT EXISTS company."position"
+(
+	id int8 NOT NULL DEFAULT nextval('position_pkey_seq')::regclass,
+    name VARCHAR(100) NOT NULL,
+    CONSTRAINT pk_position_id PRIMARY KEY (id)
+); 
+
+CREATE SEQUENCE IF NOT EXISTS user_pkey_seq;
+CREATE TABLE IF NOT EXISTS company."user"
+(
+	id int8 NOT NULL DEFAULT nextval('user_pkey_seq')::regclass,
+    name VARCHAR(100) NOT NULL,
+	birth_date date NOT NULL,
+	join_date date NOT NULL,
+	department_id int8 NOT NULL,
+	position_id int8 NOT NULL,
+    CONSTRAINT pk_user_id PRIMARY KEY (id),
+	CONSTRAINT fk_department
+      FOREIGN KEY(department_id) 
+	  REFERENCES company.department(id),
+	CONSTRAINT fk_position
+      FOREIGN KEY(position_id) 
+	  REFERENCES company.position(id)
+);
+
+CREATE SEQUENCE IF NOT EXISTS address_pkey_seq;
+CREATE TABLE IF NOT EXISTS company."address"
+(
+	id int8 NOT NULL DEFAULT nextval('address_pkey_seq')::regclass,
+	user_id int8 NOT NULL,
+    address VARCHAR(100) NOT NULL,
+    CONSTRAINT pk_address_id PRIMARY KEY (id),
+	CONSTRAINT fk_user
+      FOREIGN KEY(user_id) 
+	  REFERENCES "user"(id)
+); 
+
+
+
+2.Technical Test Answer
+1. SELECT name, birth_date, join_date, department_id, position_id FROM company."user" 
+WHERE birth_date < (CURRENT_DATE - interval '30 year') AND
+join_date < (CURRENT_DATE - interval '5 year');
+
+2. SELECT u.name, u.birth_date, u.join_date, u.department_id, u.position_id FROM company."user" u
+JOIN company.position p ON p.id = u.position_id 
+WHERE p.name = 'Staff';
+
+3. SELECT COUNT(a.id) FROM company.address a
+JOIN company."user" u ON a.user_id = u.id
+GROUP BY u.id
+
+4. SELECT u.name, u.birth_date, u.join_date, u.department_id, u.position_id FROM company."user" u
+JOIN company.position p ON p.id = u.position_id 
+WHERE p.name = 'Manager' AND u.join_date < (CURRENT_DATE - interval '3 year');
+
+5. SELECT COUNT(u.id), d.name FROM company."user" u
+JOIN company.department d ON d.id = u.department_id
+GROUP BY d.id 
+
+6. SELECT u.name FROM company."user" u
+JOIN company.department d ON d.id = u.department_id
+JOIN company.address a ON a.user_id = u.id
+GROUP BY u.id
+HAVING COUNT(a.id) > 2
+
+3. Source Code = 
+- Java 20
+- Postgresql 13
